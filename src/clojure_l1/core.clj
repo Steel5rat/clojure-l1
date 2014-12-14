@@ -5,7 +5,9 @@
 	)
 ;nth
 (def ra 3)
-(def rb 4.5)
+(def rb 4.5);1.5 ra
+(def epsilonUp 0.5)
+(def epsilonDown 0.15)
 
 (defn calcDistance
 	[itemI itemJ]
@@ -47,15 +49,30 @@
 	)
 )
 	
+(defn getMinimalDistance
+	[newCenter centers]
+	( apply min (map (fn [item] (calcDistance newCenter item)) centers))
+)
+
 (defn checkRecFin
-	[collection centers]
-	true)
+	[collection centers newCenter]
+	(if (> (:potential (first centers)) (* epsilonUp (:potential (last centers)) ))
+		(cons newCenter centers)
+		(if(< (:potential (first centers)) (* epsilonDown (:potential (last centers)) ))
+			centers
+			(if(>= (+ (/ (getMinimalDistance newCenter centers) ra) (/ (:potential newCenter) (:potential (last centers)))) 1)
+				(cons newCenter centers)
+				{:centers centers}
+			)
+		)
+	)
+)
 
 (defn recursionBody
 	[collection centers]
 		(let [inputCollection (map (fn [item] {:position (:position item) :potential (calcPotentialAnyTime item centers) :id (:id item)}) collection)]
-			(let [newCenters ( cons (apply max-key (fn [item] (:potential item)) inputCollection) centers)]
-				(if (checkRecFin inputCollection newCenters)
+			(let [newCenters ( checkRecFin inputCollection centers (apply max-key (fn [item] (:potential item)) inputCollection) )]
+				(if (= newCenters centers)
 					newCenters
 					(recursionBody inputCollection newCenters)
 				))
@@ -66,16 +83,17 @@
 (defn -main
   [& x]
    (
-   		println
-   		(
+   		doseq
+   		[center (
    			let [collectionWithPotentials
 	   			(let [inputCollection (readFromFile (nth x 0))]
 				(
 					map (fn [item] {:position (:position item) :potential (calcPotentialFirstTime item inputCollection) :id (:id item)}) inputCollection
 				))]
 			(
-				recursionBody collectionWithPotentials [(apply max-key (fn [item] (:potential item)) collectionWithPotentials)]
+				map (fn [item] {:String (:id item) :Position (:position item) }) (recursionBody collectionWithPotentials [(apply max-key (fn [item] (:potential item)) collectionWithPotentials)])
 			)
-  		)
+  		)]
+  		(println center)
    )
 )
