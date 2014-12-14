@@ -1,19 +1,53 @@
 (ns clojure-l1.core
 	(:gen-class)
 	(:require [clojure.java.io :as io])
-	(:require [clojure.string :as str]))
+	(:require [clojure.string :as str])
+	)
 ;nth
-(defn- calcPotentialFirstTime
-	[inputString]
-	inputString)
+(def ra 3)
+
+(defn calcDistance
+	[itemI itemJ]
+	(
+		apply + (map (fn [propertyI propertyJ] (if (= propertyI propertyJ) 0 1)) itemI itemJ)
+	)
+)
+
+;(defn- -main
+;	[& x]
+;	(
+;		 print ( reduce + (map (fn [propertyI, propertyJ] (if (= propertyI propertyJ) 0 1)) (nth x 0) (nth x 1)));hamming
+;	)
+;)
+
+(defn calcPotentialFirstTime
+	[itemI, collection]
+	(
+		apply + (map (fn [itemJ] ( Math/exp(- (* (calcDistance (:position itemI) (:position itemJ)) (/ 4 (* ra ra)))))) collection  )  ;(/ 4 (* ra ra)) = alpha
+	)
+)
 
 
 (defn- readFromFile
 	[filePath]
-(with-open [rdr (io/reader filePath)]
-     (doall (map (fn [inputString] {:position (str/split inputString #",") :potential (calcPotentialFirstTime inputString)}) (line-seq rdr)))))
+	(map (fn [rangeId inputItem] {:position (drop-last 1 (:position inputItem)) :potential 0 :id rangeId})	
+		 (range 1 (java.lang.Integer/MAX_VALUE))
+		 (with-open [rdr (io/reader filePath)]
+		     (doall (map (fn [inputString] {:position (str/split inputString #",") :potential 0}) (line-seq rdr)))
+		)
+	)
+)
 	
 
-(defn -main 
+(defn -main
   [& x]
-  (print (readFromFile (nth x 0))))
+   (
+   		print
+   		(
+   			let [inputCollection (readFromFile (nth x 0))]
+			(
+				map (fn [item] {:position (:position item) :potential (calcPotentialFirstTime item inputCollection) :id (:id item)}) inputCollection
+			)
+  		)
+   )
+)
