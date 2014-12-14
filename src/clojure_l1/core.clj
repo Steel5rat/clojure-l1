@@ -5,6 +5,7 @@
 	)
 ;nth
 (def ra 3)
+(def rb 4.5)
 
 (defn calcDistance
 	[itemI itemJ]
@@ -21,12 +22,20 @@
 ;)
 
 (defn calcPotentialFirstTime
-	[itemI, collection]
+	[itemI collection]
 	(
 		apply + (map (fn [itemJ] ( Math/exp(- (* (calcDistance (:position itemI) (:position itemJ)) (/ 4 (* ra ra)))))) collection  )  ;(/ 4 (* ra ra)) = alpha
 	)
 )
 
+(defn calcPotentialAnyTime
+	[item centers]
+	(let [center (first centers)]
+		(
+			- (:potential item) (* (:potential center) (Math/exp (- (* (calcDistance (:position item) (:position center)) (/ 4 (* rb rb))))))
+		)
+	)
+)
 
 (defn- readFromFile
 	[filePath]
@@ -38,15 +47,34 @@
 	)
 )
 	
+(defn checkRecFin
+	[collection centers]
+	true)
+
+(defn recursionBody
+	[collection centers]
+		(let [inputCollection (map (fn [item] {:position (:position item) :potential (calcPotentialAnyTime item centers) :id (:id item)}) collection)]
+			(let [newCenters ( cons (apply max-key (fn [item] (:potential item)) inputCollection) centers)]
+				(if (checkRecFin inputCollection newCenters)
+					newCenters
+					(recursionBody inputCollection newCenters)
+				))
+		)
+)
+
 
 (defn -main
   [& x]
    (
-   		print
+   		println
    		(
-   			let [inputCollection (readFromFile (nth x 0))]
+   			let [collectionWithPotentials
+	   			(let [inputCollection (readFromFile (nth x 0))]
+				(
+					map (fn [item] {:position (:position item) :potential (calcPotentialFirstTime item inputCollection) :id (:id item)}) inputCollection
+				))]
 			(
-				map (fn [item] {:position (:position item) :potential (calcPotentialFirstTime item inputCollection) :id (:id item)}) inputCollection
+				recursionBody collectionWithPotentials [(apply max-key (fn [item] (:potential item)) collectionWithPotentials)]
 			)
   		)
    )
