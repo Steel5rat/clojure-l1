@@ -1,14 +1,5 @@
-# clojure-l1
+L1
 
-A Clojure library designed to ... well, that part is up to you.
-
-## Usage
-
-FIXME
-
-## License
-
-Copyright © 2014 FIXME
-
-Distributed under the Eclipse Public License either version 1.0 or (at
-your option) any later version.
+Example run cmds:
+lein run irises.txt Hamming
+lein run glass.txt Euclid
